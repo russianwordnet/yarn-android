@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">YARN</string>
+    <string name="txt_greeting">Hello, this is YARN app stub.</string>
+    <string name="tst_on_icon_tap">Yay!</string>
+</resources>
