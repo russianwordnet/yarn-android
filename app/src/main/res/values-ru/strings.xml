@@ -1,3 +1,9 @@
 <resources>
     <string name="txt_greeting">Привет. Тут будет мобильное приложение YARN.</string>
+
+    <string name="tst_processes_loaded">Этапы загружены.</string>
+    <string name="tst_load_failed">Загрузка не удалась.</string>
+
+    <string name="acs_drawer_open">Открыть меню</string>
+    <string name="acs_drawer_close">Закрыть меню</string>
 </resources>
