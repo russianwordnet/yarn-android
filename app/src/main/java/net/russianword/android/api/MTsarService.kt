@@ -1,6 +1,8 @@
 package net.russianword.android.api
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import org.jetbrains.anko.AnkoLogger
+import org.jetbrains.anko.info
 import retrofit.JacksonConverterFactory
 import retrofit.Retrofit
 import retrofit.RxJavaCallAdapterFactory
@@ -25,15 +27,23 @@ interface MTsarService {
     @Headers("Accept: application/json")
     fun listProcesses(): Observable<ArrayList<Process>>
 
-    companion object {
-        public val DEFAULT_URL = "http://crowd.yarn.nlpub.ru/"
+    companion object : AnkoLogger {
+        public const val DEFAULT_URL = "http://crowd.yarn.nlpub.ru/"
         public val DEFAULT_RETROFIT =
                 Retrofit.Builder()
-                        .baseUrl(MTsarService.DEFAULT_URL)
+                        .baseUrl(DEFAULT_URL)
                         .addConverterFactory(JacksonConverterFactory.create())
                         .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
                         .build()
 
         public val service by lazy { DEFAULT_RETROFIT.create(MTsarService::class.java) }
+
+        private var processesCache: Observable<ArrayList<Process>>? = null
+        public fun cachedListProcesses() =
+                processesCache ?:
+                MTsarService.service.listProcesses()
+                        .doOnCompleted { info("Loaded processes.") }
+                        .cache()
+                        .apply { processesCache = this }
     }
 }

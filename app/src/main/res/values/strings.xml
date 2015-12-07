@@ -3,6 +3,8 @@
     <string translatable="false" name="tst_on_icon_tap">Yay!</string>
     <string name="txt_greeting">Hello, this is YARN app stub.</string>
 
+    <string name="subMnu_processes">Processes</string>
+
     <string name="tst_processes_loaded">Processes loaded.</string>
     <string name="tst_load_failed">Load failed.</string>
 

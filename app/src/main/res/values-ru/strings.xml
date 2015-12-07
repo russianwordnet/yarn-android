@@ -4,6 +4,8 @@
     <string name="tst_processes_loaded">Этапы загружены.</string>
     <string name="tst_load_failed">Загрузка не удалась.</string>
 
+    <string name="subMnu_processes">Этапы</string>
+
     <string name="acs_drawer_open">Открыть меню</string>
     <string name="acs_drawer_close">Закрыть меню</string>
 </resources>
