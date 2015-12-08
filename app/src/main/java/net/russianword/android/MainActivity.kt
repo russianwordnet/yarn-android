@@ -13,6 +13,7 @@ import net.russianword.android.utils.*
 import org.jetbrains.anko.*
 import org.jetbrains.anko.support.v4.drawerLayout
 import rx.lang.kotlin.onError
+import java.io.Serializable
 import java.util.*
 import kotlin.properties.Delegates
 import android.support.design.R as RR
@@ -20,7 +21,14 @@ import org.jetbrains.anko.appcompat.v7.toolbar as tbar
 
 const val FRAGMENT_HOLDER_ID = 1
 
+public data class UserState(var processId: String? = null,
+                            var userId: String? = null) : Serializable
+
+private const val USER_STATE_BUNDLE_ID = "userState"
+
 class MainActivity : AppCompatActivity(), AnkoLogger {
+
+    private var userState = UserState()
 
     private var nvNavigation: NavigationView by Delegates.notNull()
 
@@ -48,7 +56,8 @@ class MainActivity : AppCompatActivity(), AnkoLogger {
         nvNavigation = navigationView {
             addHeaderView(ctx.verticalLayout { imageView(R.mipmap.ic_launcher) { padding = dip(16); lparams() } })
             lparams(width = wrapContent, height = matchParent, gravity = Gravity.START)
-            setItemTextColor(ContextCompat.getColorStateList(ctx, android.R.color.primary_text_dark_nodisable))
+            itemTextColor = ContextCompat.getColorStateList(ctx, android.R.color.primary_text_dark_nodisable)
+            itemIconTintList = ContextCompat.getColorStateList(ctx, android.R.color.primary_text_dark_nodisable)
             setNavigationItemSelectedListener() f@{ item ->
                 item.setChecked(true)
                 this@drawerLayout.closeDrawers()
@@ -62,7 +71,21 @@ class MainActivity : AppCompatActivity(), AnkoLogger {
         super.onCreate(savedInstanceState)
         setContentView(ui())
         fragmentManager.beginTransaction().replace(FRAGMENT_HOLDER_ID, HelloFragment()).commit()
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        super.onRestoreInstanceState(savedInstanceState)
+        userState = savedInstanceState.getSerializable(USER_STATE_BUNDLE_ID) as? UserState ?: UserState()
+    }
+
+    override fun onPostCreate(savedInstanceState: Bundle?) {
+        super.onPostCreate(savedInstanceState)
         listProcesses()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putSerializable(USER_STATE_BUNDLE_ID, userState)
     }
 
     private fun listProcesses() {
@@ -74,19 +97,6 @@ class MainActivity : AppCompatActivity(), AnkoLogger {
                 }.subscribe { displayProcessesInMenu(it) }
     }
 
-    public fun selectProcess(process: Process) {
-        toast("Selected process \"${process.id}\".")
-        MTsarService.authenticateForProcess(process, "android-" + getAndroidId())
-                .asAsync()
-                .onError {
-                    toast("Could not authenticate.")
-                    error(it.getStackTraceString())
-                }
-                .subscribe {
-                    toast("Authenticated as id ${it.id}.")
-                }
-    }
-
     private val menuItemToProcess = HashMap<MenuItem, Process>()
 
     private fun displayProcessesInMenu(processes: List<Process>) {
@@ -94,10 +104,33 @@ class MainActivity : AppCompatActivity(), AnkoLogger {
             menu.clear()
             menu.addSubMenu(R.string.subMnu_processes).apply {
                 processes.forEach { p ->
-                    val item = menu.add(p.description).apply { setCheckable(true) }
+                    val item = add(p.description).apply { setIcon(android.R.drawable.ic_menu_edit); setCheckable(true) }
+                    if (p.id == userState.processId) {
+                        item.setChecked(true)
+                        selectProcess(p)
+                    }
                     menuItemToProcess[item] = p
                 }
             }
         }
     }
+
+    public fun selectProcess(process: Process) {
+        if (process.id == userState.processId && userState.userId != null)
+            return
+
+        userState.processId = process.id
+
+        MTsarService.authenticateForProcess(process, "android-" + getAndroidId())
+                .asAsync()
+                .onError {
+                    toast(R.string.tst_auth_failed)
+                    error(it.getStackTraceString())
+                }
+                .subscribe { w ->
+                    userState.userId = w.id
+                    toast(getString(R.string.tst_auth_success).format(w.id))
+                }
+    }
+
 }

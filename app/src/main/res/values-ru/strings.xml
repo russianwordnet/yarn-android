@@ -6,6 +6,9 @@
 
     <string name="subMnu_processes">Этапы</string>
 
+    <string name="tst_auth_success">Успешный вход, id: %1$s.</string>
+    <string name="tst_auth_failed">Не удалось войти.</string>
+
     <string name="acs_drawer_open">Открыть меню</string>
     <string name="acs_drawer_close">Закрыть меню</string>
 </resources>

@@ -8,6 +8,9 @@
     <string name="tst_processes_loaded">Processes loaded.</string>
     <string name="tst_load_failed">Load failed.</string>
 
+    <string name="tst_auth_success">Authenticated as id %1$s.</string>
+    <string name="tst_auth_failed">Could not authenticate.</string>
+
     <string name="acs_drawer_open">Open menu</string>
     <string name="acs_drawer_close">Close menu</string>
 </resources>
