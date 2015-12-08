@@ -9,10 +9,7 @@ import android.view.Gravity
 import android.view.MenuItem
 import net.russianword.android.api.MTsarService
 import net.russianword.android.api.Process
-import net.russianword.android.utils.asAsync
-import net.russianword.android.utils.getActionBarColor
-import net.russianword.android.utils.getActionBarSize
-import net.russianword.android.utils.navigationView
+import net.russianword.android.utils.*
 import org.jetbrains.anko.*
 import org.jetbrains.anko.support.v4.drawerLayout
 import rx.lang.kotlin.onError
@@ -78,8 +75,16 @@ class MainActivity : AppCompatActivity(), AnkoLogger {
     }
 
     public fun selectProcess(process: Process) {
-        //todo To be done.
         toast("Selected process \"${process.id}\".")
+        MTsarService.authenticateForProcess(process, "android-" + getAndroidId())
+                .asAsync()
+                .onError {
+                    toast("Could not authenticate.")
+                    error(it.getStackTraceString())
+                }
+                .subscribe {
+                    toast("Authenticated as id ${it.id}.")
+                }
     }
 
     private val menuItemToProcess = HashMap<MenuItem, Process>()

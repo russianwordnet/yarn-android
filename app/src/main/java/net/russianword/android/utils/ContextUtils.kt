@@ -1,6 +1,7 @@
 package net.russianword.android.utils
 
 import android.content.Context
+import android.provider.Settings
 import android.support.v4.content.ContextCompat
 import android.util.Log
 import android.util.TypedValue
@@ -22,3 +23,6 @@ public fun Context.getActionBarSize(): Int {
 }
 
 public fun Context.getActionBarColor(): Int = ContextCompat.getColor(this, R.color.logo_color)
+
+public fun Context.getAndroidId() = Settings.Secure.getString(getContentResolver(),
+                                                              Settings.Secure.ANDROID_ID);

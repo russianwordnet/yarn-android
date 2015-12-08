@@ -6,8 +6,7 @@ import org.jetbrains.anko.info
 import retrofit.JacksonConverterFactory
 import retrofit.Retrofit
 import retrofit.RxJavaCallAdapterFactory
-import retrofit.http.GET
-import retrofit.http.Headers
+import retrofit.http.*
 import rx.Observable
 import java.util.*
 
@@ -22,10 +21,22 @@ import java.util.*
 public data class Process(var id: String = "",
                           var description: String = "")
 
+@JsonIgnoreProperties(ignoreUnknown = true)
+public data class Worker(var id: String = "")
+
 interface MTsarService {
     @GET("/processes")
     @Headers("Accept: application/json")
     fun listProcesses(): Observable<ArrayList<Process>>
+
+    @GET("/processes/{process}/workers/tagged/{tag}")
+    @Headers("Accept: application/json")
+    fun workerByTag(@Path("process") process: String, @Path("tag") tag: String): Observable<Worker>
+
+    @FormUrlEncoded
+    @POST("/processes/{process}/workers")
+    @Headers("Accept: application/json")
+    fun addWorker(@Path("process") process: String, @Field("tags") tags: String): Observable<Worker>
 
     companion object : AnkoLogger {
         public const val DEFAULT_URL = "http://crowd.yarn.nlpub.ru/"
@@ -45,5 +56,15 @@ interface MTsarService {
                         .doOnCompleted { info("Loaded processes.") }
                         .cache()
                         .apply { processesCache = this }
+
+        public fun authenticateForProcess(process: Process, userTag: String): Observable<Worker> {
+            return service.workerByTag(process.id, userTag)
+                    .flatMap {
+                        if (it != null)
+                            Observable.just(it)
+                        else
+                            service.addWorker(process.id, userTag)
+                    }.take(1)
+        }
     }
 }
