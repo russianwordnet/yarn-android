@@ -1,6 +1,7 @@
 package net.russianword.android.api
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import net.russianword.android.utils.withSentry
 import org.jetbrains.anko.AnkoLogger
 import org.jetbrains.anko.info
 import retrofit.JacksonConverterFactory
@@ -56,6 +57,7 @@ interface MTsarService {
                         .doOnCompleted { info("Loaded processes.") }
                         .cache()
                         .apply { processesCache = this }
+                        .withSentry()
 
         public fun authenticateForProcess(process: Process, userTag: String): Observable<Worker> {
             return service.workerByTag(process.id, userTag)
@@ -64,7 +66,7 @@ interface MTsarService {
                             Observable.just(it)
                         else
                             service.addWorker(process.id, userTag)
-                    }.take(1)
+                    }.withSentry()
         }
     }
 }

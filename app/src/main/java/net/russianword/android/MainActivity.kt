@@ -7,6 +7,7 @@ import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.app.AppCompatActivity
 import android.view.Gravity
 import android.view.MenuItem
+import com.joshdholtz.sentry.Sentry
 import net.russianword.android.api.MTsarService
 import net.russianword.android.api.Process
 import net.russianword.android.utils.*
@@ -71,6 +72,9 @@ class MainActivity : AppCompatActivity(), AnkoLogger {
         super.onCreate(savedInstanceState)
         setContentView(ui())
         fragmentManager.beginTransaction().replace(FRAGMENT_HOLDER_ID, HelloFragment()).commit()
+
+        Sentry.init(this.getApplicationContext(),
+                    "http://5363021a613a44c9a3a8107af0a5cf07:c252bb3313334773be197aff6b1a7bd7@sentry.eveel.ru/7");
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
@@ -94,6 +98,7 @@ class MainActivity : AppCompatActivity(), AnkoLogger {
                 .onError {
                     toast(R.string.tst_load_failed)
                     error(it.getStackTraceString())
+                    Sentry.captureException(it)
                 }.subscribe { displayProcessesInMenu(it) }
     }
 
@@ -126,6 +131,7 @@ class MainActivity : AppCompatActivity(), AnkoLogger {
                 .onError {
                     toast(R.string.tst_auth_failed)
                     error(it.getStackTraceString())
+                    Sentry.captureException(it)
                 }
                 .subscribe { w ->
                     userState.userId = w.id
