@@ -74,6 +74,7 @@ class MainActivity : AppCompatActivity(), AnkoLogger {
         fragmentManager.beginTransaction().replace(FRAGMENT_HOLDER_ID, HelloFragment()).commit()
 
         Sentry.init(this.getApplicationContext(),
+                    "http://sentry.eveel.ru",
                     "http://5363021a613a44c9a3a8107af0a5cf07:c252bb3313334773be197aff6b1a7bd7@sentry.eveel.ru/7");
     }
 
