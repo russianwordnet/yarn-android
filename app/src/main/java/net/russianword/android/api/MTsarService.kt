@@ -40,7 +40,7 @@ interface MTsarService {
     fun addWorker(@Path("process") process: String, @Field("tags") tags: String): Observable<Worker>
 
     companion object : AnkoLogger {
-        public const val DEFAULT_URL = "http://crowd.yarn.nlpub.ru/"
+        public const val DEFAULT_URL = "https://api.russianword.net/"
         public val DEFAULT_RETROFIT =
                 Retrofit.Builder()
                         .baseUrl(DEFAULT_URL)
