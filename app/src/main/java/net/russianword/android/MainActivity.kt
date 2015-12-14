@@ -27,6 +27,7 @@ public data class UserState(var processId: String? = null,
                             var userId: String? = null) : Serializable
 
 private const val USER_STATE_BUNDLE_ID = "userState"
+private const val FRAGMENT_BUNDLE_ID = "fragment"
 
 class MainActivity : AppCompatActivity(), AnkoLogger {
 
@@ -72,7 +73,15 @@ class MainActivity : AppCompatActivity(), AnkoLogger {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(ui())
-        fragmentManager.beginTransaction().replace(FRAGMENT_HOLDER_ID, HelloFragment()).commit()
+        if (savedInstanceState != null) {
+            val fragment = supportFragmentManager.getFragment(savedInstanceState, FRAGMENT_BUNDLE_ID)
+            if (fragment != null) {
+                info { "restored fragment" }
+            }
+            supportFragmentManager.beginTransaction().replace(FRAGMENT_HOLDER_ID, fragment ?: HelloFragment()).commit()
+        } else {
+            supportFragmentManager.beginTransaction().replace(FRAGMENT_HOLDER_ID, HelloFragment()).commit()
+        }
 
         Sentry.init(this.getApplicationContext(),
                     "http://sentry.eveel.ru",
@@ -92,6 +101,9 @@ class MainActivity : AppCompatActivity(), AnkoLogger {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putSerializable(USER_STATE_BUNDLE_ID, userState)
+        supportFragmentManager.putFragment(outState,
+                                           FRAGMENT_BUNDLE_ID,
+                                           supportFragmentManager.findFragmentById(FRAGMENT_HOLDER_ID))
     }
 
     private fun listProcesses() {

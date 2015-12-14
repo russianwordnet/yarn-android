@@ -1,12 +1,14 @@
 package net.russianword.android
 
-import android.app.Fragment
+import android.support.v4.app.Fragment
 import android.os.Bundle
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import org.jetbrains.anko.*
+import org.jetbrains.anko.support.v4.ctx
+import org.jetbrains.anko.support.v4.toast
 
 class HelloFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater,
