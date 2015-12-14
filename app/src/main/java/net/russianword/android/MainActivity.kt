@@ -13,6 +13,7 @@ import net.russianword.android.api.Process
 import net.russianword.android.utils.*
 import org.jetbrains.anko.*
 import org.jetbrains.anko.support.v4.drawerLayout
+import rx.Observable
 import rx.lang.kotlin.onError
 import java.io.Serializable
 import java.util.*
@@ -96,11 +97,13 @@ class MainActivity : AppCompatActivity(), AnkoLogger {
     private fun listProcesses() {
         MTsarService.cachedListProcesses()
                 .asAsync()
-                .onError {
+                .onErrorResumeNext {
                     toast(R.string.tst_load_failed)
                     error(it.getStackTraceString())
                     Sentry.captureException(it)
-                }.subscribe { displayProcessesInMenu(it) }
+                    Observable.empty()
+                }
+                .subscribe ({ displayProcessesInMenu(it) })
     }
 
     private val menuItemToProcess = HashMap<MenuItem, Process>()

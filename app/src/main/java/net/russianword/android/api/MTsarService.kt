@@ -25,6 +25,14 @@ public data class Process(var id: String = "",
 @JsonIgnoreProperties(ignoreUnknown = true)
 public data class Worker(var id: String = "")
 
+@JsonIgnoreProperties(ignoreUnknown = true)
+public data class TasksResponse(val tasks: List<Task>)
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+public data class Task(val id: Int,
+                       val description: String,
+                       val answers: List<String>)
+
 interface MTsarService {
     @GET("/processes")
     @Headers("Accept: application/json")
@@ -32,12 +40,15 @@ interface MTsarService {
 
     @GET("/processes/{process}/workers/tagged/{tag}")
     @Headers("Accept: application/json")
-    fun workerByTag(@Path("process") process: String, @Path("tag") tag: String): Observable<Worker>
+    fun workerByTag(@Path("process") processId: String, @Path("tag") tag: String): Observable<Worker>
 
     @FormUrlEncoded
     @POST("/processes/{process}/workers")
     @Headers("Accept: application/json")
-    fun addWorker(@Path("process") process: String, @Field("tags") tags: String): Observable<Worker>
+    fun addWorker(@Path("process") processId: String, @Field("tags") tags: String): Observable<Worker>
+
+    @GET("/process/{process}/workers/{worker}/task")
+    fun assignTask(@Path("process") processId: String, @Path("worker") workerId: Int): Observable<TasksResponse>
 
     companion object : AnkoLogger {
         public const val DEFAULT_URL = "http://crowd.yarn.nlpub.ru/"
@@ -57,16 +68,23 @@ interface MTsarService {
                         .doOnCompleted { info("Loaded processes.") }
                         .cache()
                         .apply { processesCache = this }
+                        .doOnError { processesCache = null }
                         .withSentry()
 
-        public fun authenticateForProcess(process: Process, userTag: String): Observable<Worker> {
-            return service.workerByTag(process.id, userTag)
-                    .flatMap {
-                        if (it != null)
-                            Observable.just(it)
-                        else
-                            service.addWorker(process.id, userTag)
-                    }.withSentry()
-        }
+        public fun authenticateForProcess(process: Process, userTag: String): Observable<Worker> =
+                service.workerByTag(process.id, userTag)
+                        .flatMap {
+                            if (it != null)
+                                Observable.just(it)
+                            else
+                                service.addWorker(process.id, userTag)
+                        }.withSentry()
+
+        public fun assignTask(processId: String, workerId: Int): Observable<Task> =
+                service.assignTask(processId, workerId)
+                        .flatMap { Observable.from(it.tasks) }
+                        .single()
+                        .withSentry()
+
     }
 }

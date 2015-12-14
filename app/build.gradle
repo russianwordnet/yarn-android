@@ -1,6 +1,6 @@
 buildscript {
     ext.kotlin_version = '1.0.0-beta-3594'
-    ext.anko_version = '0.8'
+    ext.anko_version = '0.8.1'
 
     repositories {
         jcenter()
@@ -23,6 +23,10 @@ repositories {
 android {
     compileSdkVersion 23
     buildToolsVersion "23.0.2"
+
+    lintOptions {
+        disable 'InvalidPackage'
+    }
 
     defaultConfig {
         applicationId "net.russianword.android"
@@ -52,9 +56,9 @@ dependencies {
 
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 
-    compile "org.jetbrains.anko:anko-sdk23:$anko_version"
-    compile "org.jetbrains.anko:anko-support-v4:$anko_version"
-    compile "org.jetbrains.anko:anko-appcompat-v7:$anko_version"
+    compile "org.jetbrains.anko:anko-sdk23:0.8"
+    compile "org.jetbrains.anko:anko-support-v4:0.8.1"
+    compile "org.jetbrains.anko:anko-appcompat-v7:0.8.1"
 
     compile 'com.squareup.retrofit:retrofit:2.0.0-beta2'
     compile 'com.squareup.retrofit:converter-jackson:2.0.0-beta2'
