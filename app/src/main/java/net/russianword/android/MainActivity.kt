@@ -10,12 +10,13 @@ import android.view.MenuItem
 import com.joshdholtz.sentry.Sentry
 import net.russianword.android.api.MTsarService
 import net.russianword.android.api.Process
-import net.russianword.android.utils.*
+import net.russianword.android.utils.asAsync
+import net.russianword.android.utils.getActionBarColor
+import net.russianword.android.utils.getActionBarSize
+import net.russianword.android.utils.navigationView
 import org.jetbrains.anko.*
 import org.jetbrains.anko.support.v4.drawerLayout
 import rx.Observable
-import rx.lang.kotlin.onError
-import java.io.Serializable
 import java.util.*
 import kotlin.properties.Delegates
 import android.support.design.R as RR
@@ -23,15 +24,9 @@ import org.jetbrains.anko.appcompat.v7.toolbar as tbar
 
 const val FRAGMENT_HOLDER_ID = 1
 
-public data class UserState(var processId: String? = null,
-                            var userId: String? = null) : Serializable
-
-private const val USER_STATE_BUNDLE_ID = "userState"
 private const val FRAGMENT_BUNDLE_ID = "fragment"
 
 class MainActivity : AppCompatActivity(), AnkoLogger {
-
-    private var userState = UserState()
 
     private var nvNavigation: NavigationView by Delegates.notNull()
 
@@ -72,16 +67,15 @@ class MainActivity : AppCompatActivity(), AnkoLogger {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContentView(ui())
-        if (savedInstanceState != null) {
-            val fragment = supportFragmentManager.getFragment(savedInstanceState, FRAGMENT_BUNDLE_ID)
-            if (fragment != null) {
-                info { "restored fragment" }
-            }
-            supportFragmentManager.beginTransaction().replace(FRAGMENT_HOLDER_ID, fragment ?: HelloFragment()).commit()
-        } else {
-            supportFragmentManager.beginTransaction().replace(FRAGMENT_HOLDER_ID, HelloFragment()).commit()
-        }
+        supportFragmentManager
+                .beginTransaction()
+                .replace(FRAGMENT_HOLDER_ID,
+                         savedInstanceState?.let {
+                             supportFragmentManager.getFragment(it, FRAGMENT_BUNDLE_ID)
+                         } ?: HelloFragment())
+                .commit()
 
         Sentry.init(this.getApplicationContext(),
                     "http://sentry.eveel.ru",
@@ -90,7 +84,6 @@ class MainActivity : AppCompatActivity(), AnkoLogger {
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         super.onRestoreInstanceState(savedInstanceState)
-        userState = savedInstanceState.getSerializable(USER_STATE_BUNDLE_ID) as? UserState ?: UserState()
     }
 
     override fun onPostCreate(savedInstanceState: Bundle?) {
@@ -100,7 +93,6 @@ class MainActivity : AppCompatActivity(), AnkoLogger {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putSerializable(USER_STATE_BUNDLE_ID, userState)
         supportFragmentManager.putFragment(outState,
                                            FRAGMENT_BUNDLE_ID,
                                            supportFragmentManager.findFragmentById(FRAGMENT_HOLDER_ID))
@@ -120,13 +112,16 @@ class MainActivity : AppCompatActivity(), AnkoLogger {
 
     private val menuItemToProcess = HashMap<MenuItem, Process>()
 
+    private fun menuItemByProcess(id: String?) =
+            id?.let { menuItemToProcess.entries.firstOrNull { it.value.id == id }?.key }
+
     private fun displayProcessesInMenu(processes: List<Process>) {
         with (nvNavigation) {
             menu.clear()
             menu.addSubMenu(R.string.subMnu_processes).apply {
                 processes.forEach { p ->
                     val item = add(p.description).apply { setIcon(android.R.drawable.ic_menu_edit); setCheckable(true) }
-                    if (p.id == userState.processId) {
+                    if (p.id == fragmentToProcessId(supportFragmentManager.findFragmentById(FRAGMENT_HOLDER_ID))) {
                         item.setChecked(true)
                         selectProcess(p)
                     }
@@ -136,23 +131,14 @@ class MainActivity : AppCompatActivity(), AnkoLogger {
         }
     }
 
+
     public fun selectProcess(process: Process) {
-        if (process.id == userState.processId && userState.userId != null)
+        if (process.id == fragmentToProcessId(supportFragmentManager.findFragmentById(FRAGMENT_HOLDER_ID)))
             return
 
-        userState.processId = process.id
-
-        MTsarService.authenticateForProcess(process, "android-" + getAndroidId())
-                .asAsync()
-                .onError {
-                    toast(R.string.tst_auth_failed)
-                    error(it.getStackTraceString())
-                    Sentry.captureException(it)
-                }
-                .subscribe { w ->
-                    userState.userId = w.id
-                    toast(getString(R.string.tst_auth_success).format(w.id))
-                }
+        when (process.id) {
+            "sentences" -> supportFragmentManager.beginTransaction().replace(FRAGMENT_HOLDER_ID, SentencesFragment()).addToBackStack(null).commit()
+        }
     }
 
 }

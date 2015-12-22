@@ -9,6 +9,7 @@ import retrofit.Retrofit
 import retrofit.RxJavaCallAdapterFactory
 import retrofit.http.*
 import rx.Observable
+import java.io.Serializable
 import java.util.*
 
 /**
@@ -26,12 +27,12 @@ public data class Process(var id: String = "",
 public data class Worker(var id: String = "")
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public data class TasksResponse(val tasks: List<Task>)
+public data class TasksResponse(var tasks: List<Task> = listOf())
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public data class Task(val id: Int,
-                       val description: String,
-                       val answers: List<String>)
+public data class Task(var id: Int = 0,
+                       var description: String = "",
+                       var answers: List<String> = listOf()) : Serializable
 
 interface MTsarService {
     @GET("/processes")
@@ -47,7 +48,7 @@ interface MTsarService {
     @Headers("Accept: application/json")
     fun addWorker(@Path("process") processId: String, @Field("tags") tags: String): Observable<Worker>
 
-    @GET("/process/{process}/workers/{worker}/task")
+    @GET("/processes/{process}/workers/{worker}/task")
     fun assignTask(@Path("process") processId: String, @Path("worker") workerId: Int): Observable<TasksResponse>
 
     companion object : AnkoLogger {

@@ -3,6 +3,8 @@
     <color name="logo_color">#5F6774</color>
     <color name="logo_color_darker">#484E58</color>
 
+    <color name="card_background_color">#3E434A</color>
+    
     <color name="control_highlight">#607D8B</color>
     <color name="select_background">#393E46</color>
     <color name="accent">#FFEA00</color>

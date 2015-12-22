@@ -11,4 +11,7 @@
 
     <string name="acs_drawer_open">Открыть меню</string>
     <string name="acs_drawer_close">Закрыть меню</string>
+
+    <string name="btn_done">Готово</string>
+    <string name="hint_sentences">Выберите одно или несколько слов, наиболее подходящих по смыслу</string>
 </resources>
