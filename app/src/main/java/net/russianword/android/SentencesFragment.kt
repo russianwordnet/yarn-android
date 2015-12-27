@@ -210,16 +210,18 @@ class SentencesFragment : Fragment(), AnkoLogger {
 
                 val button = button(R.string.btn_done) {
                     makeBorderless()
+                    onClick {
+                        //todo Send the answer
+                        userState.currentState = State.NOT_LOADED
+                        updateTask()
+                        this@cardView.disappearToTop()
+                        onClick { }
+                    }
                 }.lparams {
                     width = matchParent
                     topMargin = dip(8)
-                }.onClick {
-                    //todo Send the answer
-                    userState.currentState = State.NOT_LOADED
-                    updateTask()
-                    this@cardView.disappearToTop()
-                    onClick { }
                 }
+
             }.apply {
                 padding = dip(16)
             }
