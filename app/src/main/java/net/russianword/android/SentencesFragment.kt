@@ -47,18 +47,21 @@ class SentencesFragment : Fragment(), AnkoLogger {
             val checkedItems = it.getSerializable(CHECKED_ITEMS_BUNDLE_ID) as? ArrayList<*>
             if (checkedItems != null)
                 for (i in checkedItems) {
-                    if (i is Pair<*, *> && i.first is String)
+                    if (i is Pair<*, *>) {
                         checkBoxes.firstOrNull() { it.text == i.first }?.let { it.isChecked = i.second as Boolean }
+                    }
                 }
         }
     }
 
     override fun onSaveInstanceState(outState: Bundle?) {
         super.onSaveInstanceState(outState)
-        userState.currentState = when (userState.currentState) {
+        val state = userState.currentState
+        userState.currentState = when (state) {
             State.AUTHENTICATING -> State.NOT_AUTHENTICATED
             State.LOADING -> State.NOT_LOADED
-            else -> userState.currentState
+            State.DISPLAYED -> State.LOADED
+            else -> state
         }
         outState?.putSerializable(USER_STATE_BUNDLE_ID, userState)
         outState?.putSerializable(CHECKED_ITEMS_BUNDLE_ID, checkBoxes.map { it.text to it.isChecked }.toArrayList())
@@ -69,12 +72,9 @@ class SentencesFragment : Fragment(), AnkoLogger {
             return
 
         when (userState.currentState) {
-            State.LOADED -> {
-                showTask(userState.task!!)
-            }
-
             State.AUTHENTICATING -> Unit
             State.LOADING -> Unit
+            State.DISPLAYED -> Unit
 
             State.NOT_AUTHENTICATED -> {
                 userState.currentState = State.AUTHENTICATING
@@ -109,6 +109,11 @@ class SentencesFragment : Fragment(), AnkoLogger {
                             userState.task = it
                             updateTask()
                         }
+            }
+
+            State.LOADED -> {
+                userState.currentState = State.DISPLAYED
+                showTask(userState.task!!)
             }
         }
 
@@ -208,7 +213,7 @@ class SentencesFragment : Fragment(), AnkoLogger {
                         })
                 }
 
-                val button = button(R.string.btn_done) {
+                button(R.string.btn_done) {
                     makeBorderless()
                     onClick {
                         //todo Send the answer
