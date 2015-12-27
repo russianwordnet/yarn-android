@@ -15,5 +15,5 @@
     <string name="acs_drawer_close">Close menu</string>
     
     <string name="btn_done">Done</string>
-    <string name="hint_sentences">Choose one or more word which fit the meaning of the sentence best</string>
+    <string name="hint_sentences">Choose one or more words which fit the meaning of the sentence best</string>
 </resources>

@@ -3,6 +3,7 @@ package net.russianword.android
 
 import android.os.Bundle
 import android.support.v4.app.Fragment
+import android.support.v7.widget.CardView
 import android.view.*
 import android.widget.CheckBox
 import android.widget.FrameLayout
@@ -46,8 +47,8 @@ class SentencesFragment : Fragment(), AnkoLogger {
             val checkedItems = it.getSerializable(CHECKED_ITEMS_BUNDLE_ID) as? ArrayList<*>
             if (checkedItems != null)
                 for (i in checkedItems) {
-                    i as Pair<*, *>; i.first as String; i.second as Boolean
-                    checkBoxes.first { it.text == i.first }.isChecked = i.second as Boolean
+                    i as Pair<*, *>; i.first as String
+                    checkBoxes.firstOrNull() { it.text == i.first }?.let { it.isChecked = i.second as Boolean }
                 }
         }
     }
@@ -94,21 +95,27 @@ class SentencesFragment : Fragment(), AnkoLogger {
                     }
     }
 
-    var contentLayout: ViewGroup by Delegates.notNull()
+    var contentLayout: FrameLayout by Delegates.notNull()
 
     private fun showProgressBar() {
         if (contentLayout.childrenSequence().singleOrNull()?.let { it !is ProgressBar } ?: true) {
-            contentLayout.removeAllViews()
             contentLayout.apply {
-                progressBar { isIndeterminate = true }
+                progressBar { isIndeterminate = true }.apply {
+                    layoutParams = FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+                                                            ViewGroup.LayoutParams.WRAP_CONTENT,
+                                                            Gravity.CENTER_HORIZONTAL)
+                }
             }
         }
     }
 
     private fun showTask(t: Task) {
+        checkBoxes.clear()
         contentLayout.removeAllViewsInLayout()
         contentLayout.apply {
-            taskView(t)
+            taskView(t) {
+                appearFromBottom()
+            }
         }
     }
 
@@ -118,18 +125,18 @@ class SentencesFragment : Fragment(), AnkoLogger {
 
     private val checkBoxes = ArrayList<CheckBox>()
 
-    private fun ViewManager.taskView(task: Task) = UI {
-        checkBoxes.clear()
-
+    private fun ViewManager.taskView(task: Task, init: CardView.() -> Unit) = UI {
         this@taskView.cardView {
             verticalLayout {
-                textView(ctx.spanAsterisksWithAccentColor(task.description)) {
-                    textSize = sp(8).toFloat()
+                val desc = textView(ctx.spanAsterisksWithAccentColor(task.description)) {
+                    textSize = 19f
                 }.lparams {
+                    width = matchParent
                     verticalMargin = dip(8)
                 }
 
                 configuration(orientation = Orientation.LANDSCAPE) {
+                    desc.gravity = Gravity.CENTER
                     linearLayout {
                         for (ans in task.answers) {
                             frameLayout {
@@ -157,29 +164,40 @@ class SentencesFragment : Fragment(), AnkoLogger {
                         })
                 }
 
-                button(R.string.btn_done) {
+                val button = button(R.string.btn_done) {
                     makeBorderless()
                 }.lparams {
                     width = matchParent
                     topMargin = dip(8)
-                }.onClick {
+                }
+                button.onClick {
                     //todo
                     userState.task = null
                     updateTask()
+                    this@cardView.disappearToTop()
+                    button.setOnClickListener(null)
                 }
             }.apply {
                 padding = dip(16)
             }
+
+            init()
+
+            post { disableClip(this) }
         }
     }
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View =
             ctx.verticalLayout {
                 textView(R.string.hint_sentences).lparams { bottomMargin = dip(16) }
-                scrollView { contentLayout = frameLayout() }
+                scrollView {
+                    contentLayout = frameLayout()
+                }.lparams(width = matchParent, height = dip(0), weight = 1f)
             }.style {
                 when {
-                    it is ViewGroup && it !is FrameLayout -> it.padding = ctx.dip(16)
+                    it is ViewGroup && it !is FrameLayout -> {
+                        it.padding = ctx.dip(16)
+                    }
                 }
             }
 }
