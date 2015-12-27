@@ -6,10 +6,11 @@ import android.support.v4.content.ContextCompat
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
-import android.util.Log
 import android.util.TypedValue
 import android.view.TouchDelegate
 import android.view.View
+import android.view.ViewGroup
+import android.view.ViewParent
 import android.widget.Button
 import net.russianword.android.R
 
@@ -27,7 +28,6 @@ public fun View.expandTouchAreaToParent() {
     post {
         val parent = parent
         if (parent !is View) return@post
-        Log.d("touch-area", "setting touch area")
         val hitRect = Rect()
         getHitRect(hitRect)
         hitRect.left = 0
@@ -36,6 +36,16 @@ public fun View.expandTouchAreaToParent() {
         hitRect.bottom = parent.height
         parent.touchDelegate = TouchDelegate(hitRect, this)
     }
+}
+
+public tailrec fun disableClip(v: ViewParent) {
+    val parent = v.parent
+    if (parent is ViewGroup) {
+        parent.clipChildren = false
+        parent.clipToPadding = false
+    }
+    if (parent != null)
+        disableClip(parent)
 }
 
 public fun Context.spanAsterisksWithAccentColor(s: CharSequence): CharSequence {
