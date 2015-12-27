@@ -6,14 +6,21 @@
     <string name="subMnu_processes">Processes</string>
 
     <string name="tst_processes_loaded">Processes loaded.</string>
-    <string name="tst_load_failed">Load failed.</string>
+    <string name="tst_processes_load_failed">Could not load processes.</string>
+
+    <string name="letsencrypt_not_supported">Your OS doesn\'t seem to accept our HTTPS certificate. Sorry.</string>
 
     <string name="tst_auth_success">Authenticated as id %1$s.</string>
     <string name="tst_auth_failed">Could not authenticate.</string>
+    <string name="tst_load_failed">Load failed.</string>
 
     <string name="acs_drawer_open">Open menu</string>
     <string name="acs_drawer_close">Close menu</string>
-    
+
     <string name="btn_done">Done</string>
-    <string name="hint_sentences">Choose one or more word which fit the meaning of the sentence best</string>
+    <string name="btn_retry">Retry</string>
+
+    <string name="hint_sentences">Choose all the words which fit the meaning of the sentence</string>
+
+    <string name="mnu_about">About</string>
 </resources>

@@ -2,16 +2,23 @@
     <string name="txt_greeting">Привет. Тут будет мобильное приложение YARN.</string>
 
     <string name="tst_processes_loaded">Этапы загружены.</string>
-    <string name="tst_load_failed">Загрузка не удалась.</string>
 
     <string name="subMnu_processes">Этапы</string>
+    <string name="tst_processes_load_failed">Не удалось загрузить этапы.</string>
+
+    <string name="letsencrypt_not_supported">По-видимому, ваша система не поддерживает наш HTTPS-сертификат. Извините.</string>
 
     <string name="tst_auth_success">Успешный вход, id: %1$s.</string>
     <string name="tst_auth_failed">Не удалось войти.</string>
+    <string name="tst_load_failed">Загрузка не удалась.</string>
 
     <string name="acs_drawer_open">Открыть меню</string>
     <string name="acs_drawer_close">Закрыть меню</string>
 
     <string name="btn_done">Готово</string>
-    <string name="hint_sentences">Выберите одно или несколько слов, наиболее подходящих по смыслу</string>
+    <string name="btn_retry">Повторить</string>
+
+    <string name="hint_sentences">Выберите все слова, подходящие по смыслу к предложению</string>
+
+    <string name="mnu_about">О проекте</string>
 </resources>

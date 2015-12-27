@@ -1,7 +1,7 @@
 package net.russianword.android.api
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import net.russianword.android.utils.withSentry
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.jetbrains.anko.AnkoLogger
 import org.jetbrains.anko.info
 import retrofit.JacksonConverterFactory
@@ -20,19 +20,19 @@ import java.util.*
 
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public data class Process(var id: String = "",
-                          var description: String = "")
+public data class Process(val id: String = "",
+                          val description: String = "")
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public data class Worker(var id: String = "")
+public data class Worker(val id: String = "")
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public data class TasksResponse(var tasks: List<Task> = listOf())
+public data class TasksResponse(val tasks: List<Task> = listOf())
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public data class Task(var id: Int = 0,
-                       var description: String = "",
-                       var answers: List<String> = listOf()) : Serializable
+public data class Task(val id: Int = 0,
+                       val description: String = "",
+                       val answers: List<String> = listOf()) : Serializable
 
 interface MTsarService {
     @GET("/processes")
@@ -53,10 +53,11 @@ interface MTsarService {
 
     companion object : AnkoLogger {
         public const val DEFAULT_URL = "https://api.russianword.net/"
+
         public val DEFAULT_RETROFIT =
                 Retrofit.Builder()
                         .baseUrl(DEFAULT_URL)
-                        .addConverterFactory(JacksonConverterFactory.create())
+                        .addConverterFactory(JacksonConverterFactory.create(jacksonObjectMapper()))
                         .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
                         .build()
 
@@ -70,7 +71,6 @@ interface MTsarService {
                         .cache()
                         .apply { processesCache = this }
                         .doOnError { processesCache = null }
-                        .withSentry()
 
         public fun authenticateForProcess(process: Process, userTag: String): Observable<Worker> =
                 service.workerByTag(process.id, userTag)
@@ -79,13 +79,11 @@ interface MTsarService {
                                 Observable.just(it)
                             else
                                 service.addWorker(process.id, userTag)
-                        }.withSentry()
+                        }
 
         public fun assignTask(processId: String, workerId: Int): Observable<Task> =
                 service.assignTask(processId, workerId)
                         .flatMap { Observable.from(it.tasks) }
                         .single()
-                        .withSentry()
-
     }
 }
