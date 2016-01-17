@@ -2,8 +2,8 @@ package net.russianword.android.api
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import net.russianword.android.utils.ListMultiMap
 import org.jetbrains.anko.AnkoLogger
-import org.jetbrains.anko.info
 import retrofit.JacksonConverterFactory
 import retrofit.Retrofit
 import retrofit.RxJavaCallAdapterFactory
@@ -51,6 +51,11 @@ interface MTsarService {
     @GET("/processes/{process}/workers/{worker}/task")
     fun assignTask(@Path("process") processId: String, @Path("worker") workerId: Int): Observable<TasksResponse>
 
+    @FormUrlEncoded
+    @PATCH("/processes/{process}/workers/{worker}/answers")
+    fun sendAnswer(@Path("process") processId: String, @Path("worker") workerId: Int,
+                   @FieldMap(encoded = false) fields: Map<String, String>): Observable<IntArray>
+
     companion object : AnkoLogger {
         public const val DEFAULT_URL = "https://api.russianword.net/"
 
@@ -59,18 +64,16 @@ interface MTsarService {
                         .baseUrl(DEFAULT_URL)
                         .addConverterFactory(JacksonConverterFactory.create(jacksonObjectMapper()))
                         .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
+
                         .build()
 
         public val service by lazy { DEFAULT_RETROFIT.create(MTsarService::class.java) }
 
-        private var processesCache: Observable<ArrayList<Process>>? = null
-        public fun cachedListProcesses() =
-                processesCache ?:
+        private var processesCache: ArrayList<Process>? = null
+        public fun cachedListProcesses(): Observable<ArrayList<Process>> =
+                processesCache?.let { Observable.just(it) } ?:
                 MTsarService.service.listProcesses()
-                        .doOnCompleted { info("Loaded processes.") }
-                        .cache()
-                        .apply { processesCache = this }
-                        .doOnError { processesCache = null }
+                        .doOnNext { processesCache = it }
 
         public fun authenticateForProcess(process: Process, userTag: String): Observable<Worker> =
                 service.workerByTag(process.id, userTag)
@@ -83,7 +86,15 @@ interface MTsarService {
 
         public fun assignTask(processId: String, workerId: Int): Observable<Task> =
                 service.assignTask(processId, workerId)
-                        .flatMap { Observable.from(it.tasks) }
-                        .single()
+                        .flatMap { Observable.from(it?.tasks ?: listOf()) }
+                        .singleOrDefault(null)
+
+        public fun sendAnswer(processId:
+                              String, workerId: Int,
+                              taskId: Int, answers: List<String>): Observable<IntArray> {
+            return service.sendAnswer(processId,
+                                      workerId,
+                                      ListMultiMap(mapOf("answers[$taskId]" to answers)))
+        }
     }
 }

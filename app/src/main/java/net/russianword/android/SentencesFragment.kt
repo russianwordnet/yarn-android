@@ -3,12 +3,12 @@ package net.russianword.android
 
 import android.content.BroadcastReceiver
 import android.os.Bundle
-import android.support.v4.app.Fragment
 import android.support.v7.widget.CardView
 import android.view.*
 import android.widget.CheckBox
 import android.widget.FrameLayout
 import android.widget.ProgressBar
+import com.trello.rxlifecycle.components.support.RxFragment
 import net.russianword.android.api.MTsarService
 import net.russianword.android.api.Process
 import net.russianword.android.api.Task
@@ -17,15 +17,13 @@ import org.jetbrains.anko.*
 import org.jetbrains.anko.support.v4.UI
 import org.jetbrains.anko.support.v4.ctx
 import org.jetbrains.anko.support.v4.toast
+import retrofit.HttpException
+import rx.Observable
 import java.io.IOException
 import java.util.*
 import kotlin.properties.Delegates
 
-/**
- * A simple [Fragment] subclass.
- */
-
-class SentencesFragment : Fragment(), AnkoLogger {
+class SentencesFragment : RxFragment(), AnkoLogger {
 
     val processId = fragmentToProcessId(this)!!
 
@@ -42,15 +40,8 @@ class SentencesFragment : Fragment(), AnkoLogger {
 
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        updateTask()
-        savedInstanceState?.let {
-            val checkedItems = it.getSerializable(CHECKED_ITEMS_BUNDLE_ID) as? ArrayList<*>
-            if (checkedItems != null)
-                for (i in checkedItems) {
-                    if (i is Pair<*, *>) {
-                        checkBoxes.firstOrNull() { it.text == i.first }?.let { it.isChecked = i.second as Boolean }
-                    }
-                }
+        for (ans in userState.preparedAnswers) {
+            checkBoxes.firstOrNull() { it.text == ans }?.let { it.isChecked = true }
         }
     }
 
@@ -61,13 +52,20 @@ class SentencesFragment : Fragment(), AnkoLogger {
             State.AUTHENTICATING -> State.NOT_AUTHENTICATED
             State.LOADING -> State.NOT_LOADED
             State.DISPLAYED -> State.LOADED
+            State.SENDING_ANSWER -> State.ANSWER_READY
             else -> state
         }
         outState?.putSerializable(USER_STATE_BUNDLE_ID, userState)
         outState?.putSerializable(CHECKED_ITEMS_BUNDLE_ID, checkBoxes.map { it.text to it.isChecked }.toArrayList())
     }
 
-    private fun updateTask() {
+    private fun fallBack(stringResource: Int, nextState: State) {
+        toast(stringResource)
+        userState.currentState = nextState
+        showRetryButton()
+    }
+
+    private fun proceed() {
         if (activity == null || isDetached)
             return
 
@@ -75,45 +73,63 @@ class SentencesFragment : Fragment(), AnkoLogger {
             State.AUTHENTICATING -> Unit
             State.LOADING -> Unit
             State.DISPLAYED -> Unit
+            State.SENDING_ANSWER -> Unit
 
             State.NOT_AUTHENTICATED -> {
                 userState.currentState = State.AUTHENTICATING
                 MTsarService.authenticateForProcess(Process(processId), "android-" + ctx.getAndroidId())
-                        .asAsync()
+                        .asAsync(this)
                         .handleError { e: IOException ->
-                            userState.currentState = State.NOT_AUTHENTICATED
-                            toast(R.string.tst_auth_failed)
-                            error(e.getStackTraceString())
-                            showRetryButton()
+                            fallBack(R.string.tst_auth_failed, State.NOT_AUTHENTICATED)
                         }
                         .subscribe { w ->
                             userState.userId = w.id
                             userState.currentState = State.NOT_LOADED
                             toast(getString(R.string.tst_auth_success).format(w.id))
-                            updateTask()
+                            proceed()
                         }
             }
 
             State.NOT_LOADED -> {
                 userState.currentState = State.LOADING
                 MTsarService.assignTask(processId, userState.userId!!.toInt())
-                        .asAsync()
+                        .asAsync(this)
                         .handleError { e: IOException ->
-                            userState.currentState = State.NOT_LOADED
-                            toast(R.string.tst_load_failed)
-                            error(e.getStackTraceString())
-                            showRetryButton()
+                            fallBack(R.string.tst_load_failed, State.NOT_LOADED)
                         }
                         .subscribe {
                             userState.currentState = State.LOADED
                             userState.task = it
-                            updateTask()
+                            proceed()
                         }
             }
 
             State.LOADED -> {
                 userState.currentState = State.DISPLAYED
-                showTask(userState.task!!)
+                showTask(userState.task)
+            }
+
+            State.ANSWER_READY -> {
+                userState.currentState = State.SENDING_ANSWER
+                MTsarService.sendAnswer(processId, userState.userId!!.toInt(),
+                                        userState.task!!.id, userState.preparedAnswers.toList())
+                        .asAsync(this)
+                        .handleErrorThen { e: HttpException ->
+                            if (e.response().errorBody().string().contains("#answer-duplicate"))
+                                Observable.just(intArrayOf())
+                            else
+                                Observable.error(e)
+                        }
+                        .handleError { e: IOException ->
+                            e.printStackTrace()
+                            fallBack(R.string.tst_send_answer_failed, State.ANSWER_READY)
+                        }
+                        .subscribe {
+                            userState.currentState = State.NOT_LOADED
+                            userState.preparedAnswers = emptySet()
+                            proceed()
+                        }
+
             }
         }
 
@@ -139,12 +155,12 @@ class SentencesFragment : Fragment(), AnkoLogger {
         contentLayout.removeAllViewsInLayout()
         contentLayout.apply {
             button(R.string.btn_retry) {
-                onClick { updateTask(); setOnClickListener(null) }
+                onClick { proceed(); setOnClickListener(null); visibility = View.GONE }
             }
         }
     }
 
-    private fun showTask(t: Task) {
+    private fun showTask(t: Task?) {
         checkBoxes.clear()
         contentLayout.removeAllViewsInLayout()
         contentLayout.apply {
@@ -160,7 +176,7 @@ class SentencesFragment : Fragment(), AnkoLogger {
         super.onResume()
         receiversToUnregister.add(ctx.onNetworkStateChange {
             if (it.isConnected) {
-                updateTask()
+                proceed() //assuming that this is called every time in onResume
             }
         })
     }
@@ -174,8 +190,17 @@ class SentencesFragment : Fragment(), AnkoLogger {
 
     private val checkBoxes = ArrayList<CheckBox>()
 
-    private fun ViewManager.taskView(task: Task, init: CardView.() -> Unit) = UI {
+    private fun ViewManager.taskView(task: Task?, init: CardView.() -> Unit) = UI {
+        if (task == null) {
+            this@taskView.textView(R.string.no_more_tasks) {
+                this@textView.gravity = Gravity.CENTER
+                textSize = 17f
+            }
+            return@UI
+        }
+
         this@taskView.cardView {
+
             verticalLayout {
                 val desc = textView(ctx.spanAsterisksWithAccentColor(task.description)) {
                     textSize = 19f
@@ -216,9 +241,9 @@ class SentencesFragment : Fragment(), AnkoLogger {
                 button(R.string.btn_done) {
                     makeBorderless()
                     onClick {
-                        //todo Send the answer
-                        userState.currentState = State.NOT_LOADED
-                        updateTask()
+                        userState.preparedAnswers = checkBoxes.filter { it.isChecked }.map { it.text.toString() }.toMutableSet()
+                        userState.currentState = State.ANSWER_READY
+                        proceed()
                         this@cardView.disappearToTop()
                         onClick { }
                     }
@@ -226,7 +251,6 @@ class SentencesFragment : Fragment(), AnkoLogger {
                     width = matchParent
                     topMargin = dip(8)
                 }
-
             }.apply {
                 padding = dip(16)
             }

@@ -11,6 +11,9 @@
     <string name="tst_auth_success">Успешный вход, id: %1$s.</string>
     <string name="tst_auth_failed">Не удалось войти.</string>
     <string name="tst_load_failed">Загрузка не удалась.</string>
+    <string name="tst_send_answer_failed">Не удалось отправить ответ.</string>
+
+    <string name="no_more_tasks">Больше задач этого этапа не осталось. Спасибо, приходите ещё.</string>
 
     <string name="acs_drawer_open">Открыть меню</string>
     <string name="acs_drawer_close">Закрыть меню</string>

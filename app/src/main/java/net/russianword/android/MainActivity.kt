@@ -7,10 +7,10 @@ import android.os.Bundle
 import android.support.design.widget.NavigationView
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.ActionBarDrawerToggle
-import android.support.v7.app.AppCompatActivity
 import android.view.Gravity
 import android.view.MenuItem
 import com.joshdholtz.sentry.Sentry
+import com.trello.rxlifecycle.components.support.RxAppCompatActivity
 import net.russianword.android.api.MTsarService
 import net.russianword.android.api.Process
 import net.russianword.android.utils.*
@@ -29,7 +29,7 @@ private const val FRAGMENT_BUNDLE_ID = "fragment"
 
 private const val MENU_ABOUT_ID = -1
 
-class MainActivity : AppCompatActivity(), AnkoLogger {
+class MainActivity : RxAppCompatActivity(), AnkoLogger {
 
     private var nvNavigation: NavigationView by Delegates.notNull()
 
@@ -97,21 +97,17 @@ class MainActivity : AppCompatActivity(), AnkoLogger {
         super.onRestoreInstanceState(savedInstanceState)
     }
 
-    override fun onPostCreate(savedInstanceState: Bundle?) {
-        super.onPostCreate(savedInstanceState)
-        loadProcesses()
-    }
-
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         supportFragmentManager.putFragment(outState,
                                            FRAGMENT_BUNDLE_ID,
                                            supportFragmentManager.findFragmentById(FRAGMENT_HOLDER_ID))
+
     }
 
     private fun loadProcesses() {
         MTsarService.cachedListProcesses()
-                .asAsync()
+                .asAsync(this)
                 .handleError { e: IOException ->
                     toast(R.string.tst_processes_load_failed)
                     if (nvNavigation.getHeaderView(1) == null)
@@ -133,7 +129,7 @@ class MainActivity : AppCompatActivity(), AnkoLogger {
         super.onResume()
         receiversToUnregister.add(onNetworkStateChange {
             if (it.isConnected && menuItemToProcess.isEmpty())
-                loadProcesses()
+                loadProcesses() //assuming that this is called every time in onResume
         })
     }
 

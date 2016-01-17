@@ -13,6 +13,9 @@
     <string name="tst_auth_success">Authenticated as id %1$s.</string>
     <string name="tst_auth_failed">Could not authenticate.</string>
     <string name="tst_load_failed">Load failed.</string>
+    <string name="tst_send_answer_failed">Sending answer failed.</string>
+
+    <string name="no_more_tasks">No more tasks for this process. Thank you, and come back later.</string>
 
     <string name="acs_drawer_open">Open menu</string>
     <string name="acs_drawer_close">Close menu</string>

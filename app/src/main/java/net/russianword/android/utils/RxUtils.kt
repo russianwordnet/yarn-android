@@ -1,5 +1,7 @@
 package net.russianword.android.utils
 
+import com.trello.rxlifecycle.ActivityLifecycleProvider
+import com.trello.rxlifecycle.FragmentLifecycleProvider
 import rx.Observable
 import rx.android.schedulers.AndroidSchedulers
 import rx.schedulers.Schedulers
@@ -16,7 +18,13 @@ import rx.schedulers.Schedulers
  *
  * @return observable that works asynchronously
  */
-public fun <T> Observable<T>.asAsync() = subscribeOn(Schedulers.newThread()).observeOn(AndroidSchedulers.mainThread())
+public fun <T> Observable<T>.asAsync(lifecycle: ActivityLifecycleProvider) =
+        subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread()).compose(lifecycle.bindToLifecycle<T>())
+
+public fun <T> Observable<T>.asAsync(lifecycle: FragmentLifecycleProvider) =
+        subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread()).compose(lifecycle.bindToLifecycle<T>())
 
 /**
  * @return [Observable] that will handle [Throwable] of [E] with passed [handler] and emit no items after.
@@ -31,7 +39,7 @@ public inline fun <reified E : Throwable, R> Observable<R>.handleError(crossinli
 
 /**
  * @return [Observable] that will handle [Throwable] of [E] with passed [handler] and resume with another [Observable]
- *         returned by it.]
+ *         returned by it.
  */
 public inline fun <reified E : Throwable, R> Observable<R>.handleErrorThen(crossinline handler: (E) -> Observable<R>) =
         onErrorResumeNext f@{ e ->
@@ -39,9 +47,4 @@ public inline fun <reified E : Throwable, R> Observable<R>.handleErrorThen(cross
                 is E -> handler(e)
                 else -> Observable.error(e)
             }
-        }
-
-public inline fun <T> retryOnAnyError(crossinline fObservable: () -> Observable<T>) =
-        fObservable().onErrorResumeNext {
-            fObservable()
         }
