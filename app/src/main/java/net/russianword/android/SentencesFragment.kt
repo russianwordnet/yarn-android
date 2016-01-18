@@ -36,15 +36,6 @@ class SentencesFragment : RxFragment(), AnkoLogger {
         restoredState?.let { userState = it }
     }
 
-    val CHECKED_ITEMS_BUNDLE_ID = "checked_items"
-
-    override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        for (ans in userState.preparedAnswers) {
-            checkBoxes.firstOrNull() { it.text == ans }?.let { it.isChecked = true }
-        }
-    }
-
     override fun onSaveInstanceState(outState: Bundle?) {
         super.onSaveInstanceState(outState)
         val state = userState.currentState
@@ -55,8 +46,8 @@ class SentencesFragment : RxFragment(), AnkoLogger {
             State.SENDING_ANSWER -> State.ANSWER_READY
             else -> state
         }
+        userState.preparedAnswers = checkBoxes.filter { it.isChecked }.map { it.text.toString() }.toSet()
         outState?.putSerializable(USER_STATE_BUNDLE_ID, userState)
-        outState?.putSerializable(CHECKED_ITEMS_BUNDLE_ID, checkBoxes.map { it.text to it.isChecked }.toArrayList())
     }
 
     private fun fallBack(stringResource: Int, nextState: State) {
@@ -167,6 +158,9 @@ class SentencesFragment : RxFragment(), AnkoLogger {
             taskView(t) {
                 appearFromBottom()
             }
+        }
+        for (ans in userState.preparedAnswers) {
+            checkBoxes.firstOrNull() { it.text == ans }?.let { it.isChecked = true }
         }
     }
 
