@@ -16,9 +16,9 @@ const val DISAPPEAR_DURATION = 200L
 const val APPEAR_DELTA_Y = 600
 const val DISAPPEAR_DELTA_Y = 200
 
-public fun View.disappearToTop() = animateDisappear(0, -DISAPPEAR_DELTA_Y)
+fun View.disappearToTop() = animateDisappear(0, -DISAPPEAR_DELTA_Y)
 
-public fun View.animateDisappear(toX: Int, toY: Int) {
+fun View.animateDisappear(toX: Int, toY: Int) {
     val translate = TranslateAnimation(0f, toX.toFloat(), 0f, toY.toFloat())
     val alpha = AlphaAnimation(1.0f, 0.0f)
 
@@ -42,9 +42,9 @@ public fun View.animateDisappear(toX: Int, toY: Int) {
     startAnimation(animationSet)
 }
 
-public fun View.appearFromBottom() = animateAppear(0, APPEAR_DELTA_Y)
+fun View.appearFromBottom() = animateAppear(0, APPEAR_DELTA_Y)
 
-public fun View.animateAppear(fromX: Int, fromY: Int) {
+fun View.animateAppear(fromX: Int, fromY: Int) {
     val translate = TranslateAnimation(fromX.toFloat(), 0f, fromY.toFloat(), 0f)
     val alpha = AlphaAnimation(0f, 1f)
 

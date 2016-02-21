@@ -40,19 +40,19 @@ class MainActivity : RxAppCompatActivity(), AnkoLogger {
                 lparams(height = getActionBarSize(), width = matchParent)
                 backgroundColor = getActionBarColor()
                 setSupportActionBar(this)
-                supportActionBar.setDisplayHomeAsUpEnabled(true)
+                supportActionBar!!.setDisplayHomeAsUpEnabled(true)
 
                 ActionBarDrawerToggle(
                         act, this@drawerLayout, this@apply,
-                        R.string.acs_drawer_open, R.string.acs_drawer_close)
-                        .let {
-                            setDrawerListener(it)
-                            it.syncState()
-                        }
+                        R.string.acs_drawer_open, R.string.acs_drawer_close
+                ).let {
+                    setDrawerListener(it)
+                    it.syncState()
+                }
             }
             frameLayout {
                 id = FRAGMENT_HOLDER_ID
-            }
+            }.lparams(height = matchParent, width = matchParent)
         }
         nvNavigation = navigationView {
             addHeaderView(ctx.verticalLayout { imageView(R.mipmap.ic_launcher) { padding = dip(16); lparams() } })
@@ -60,8 +60,8 @@ class MainActivity : RxAppCompatActivity(), AnkoLogger {
             itemTextColor = ContextCompat.getColorStateList(ctx, android.R.color.primary_text_dark_nodisable)
             itemIconTintList = ContextCompat.getColorStateList(ctx, android.R.color.primary_text_dark_nodisable)
             setNavigationItemSelectedListener() f@{ item ->
-                item.setChecked(true)
-                nvNavigation.menu.itemsSequence().filter { it != item }.forEach { it.setChecked(false) }
+                item.isChecked = true
+                nvNavigation.menu.itemsSequence().filter { it != item }.forEach { it.isChecked = false }
                 this@drawerLayout.closeDrawers()
                 selectProcess(menuItemToProcess[item])
                 return@f true
@@ -82,7 +82,7 @@ class MainActivity : RxAppCompatActivity(), AnkoLogger {
                          } ?: HelloFragment())
                 .commit()
 
-        Sentry.init(this.getApplicationContext(),
+        Sentry.init(this.applicationContext,
                     "http://sentry.eveel.ru",
                     "http://5363021a613a44c9a3a8107af0a5cf07:c252bb3313334773be197aff6b1a7bd7@sentry.eveel.ru/7");
 
@@ -133,8 +133,10 @@ class MainActivity : RxAppCompatActivity(), AnkoLogger {
         })
     }
 
+
     override fun onPause() {
         super.onPause()
+
         for (r in receiversToUnregister)
             unregisterReceiver(r)
         receiversToUnregister.clear()
@@ -159,7 +161,7 @@ class MainActivity : RxAppCompatActivity(), AnkoLogger {
             getHeaderView(1)?.let { removeHeaderView(it) }
             menu.clear()
             menu.add(0, MENU_ABOUT_ID, 0, R.string.mnu_about).apply {
-                setCheckable(true)
+                isCheckable = true
                 setIcon(android.R.drawable.ic_menu_info_details)
             }
             setCheckedItem(MENU_ABOUT_ID)
@@ -174,7 +176,7 @@ class MainActivity : RxAppCompatActivity(), AnkoLogger {
                 processes.forEach { p ->
                     val item = add(0, ++id, 0, p.description.dropLastWhile { it == '.' }).apply {
                         setIcon(android.R.drawable.ic_menu_edit)
-                        setCheckable(true)
+                        isCheckable = true
                     }
                     if (p.id == fragmentToProcessId(supportFragmentManager.findFragmentById(FRAGMENT_HOLDER_ID))) {
                         setCheckedItem(item.itemId)
@@ -186,7 +188,7 @@ class MainActivity : RxAppCompatActivity(), AnkoLogger {
         }
     }
 
-    public fun selectProcess(process: Process?) {
+    fun selectProcess(process: Process?) {
         if (process == null) {
             supportFragmentManager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE) //clear back stack
             supportFragmentManager.beginTransaction().replace(FRAGMENT_HOLDER_ID, HelloFragment()).commit()

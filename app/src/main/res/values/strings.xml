@@ -1,7 +1,8 @@
 <resources>
     <string translatable="false" name="app_name">YARN</string>
-    <string translatable="false" name="tst_on_icon_tap">Yay!</string>
-    <string name="txt_greeting">Hello, this is YARN app stub.</string>
+    <string name="txt_greeting">Hello, this is YARN app</string>
+    <string name="txt_help">Choose a process from the navigation menu to start</string>
+    <string name="txt_about">by Sergey Igushkin, YARN</string>
 
     <string name="subMnu_processes">Processes</string>
 

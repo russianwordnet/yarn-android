@@ -1,5 +1,5 @@
 <resources>
-    <string name="txt_greeting">Привет. Тут будет мобильное приложение YARN.</string>
+    <string name="txt_greeting">Привет. Это мобильное приложение YARN.</string>
 
     <string name="tst_processes_loaded">Этапы загружены.</string>
 
@@ -24,4 +24,6 @@
     <string name="hint_sentences">Выберите все слова, подходящие по смыслу к предложению</string>
 
     <string name="mnu_about">О проекте</string>
+    <string name="txt_about">Сергей Игушкин, YARN</string>
+    <string name="txt_help">Выберите этап из списка в меню</string>
 </resources>

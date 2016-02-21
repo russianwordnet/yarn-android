@@ -10,4 +10,4 @@ import rx.lang.kotlin.onError
  * Created by igushs on 12/9/15.
  */
 
-public fun <T> Observable<T>.withSentry() = onError { Sentry.captureException(it) }
+fun <T> Observable<T>.withSentry() = onError { Sentry.captureException(it) }

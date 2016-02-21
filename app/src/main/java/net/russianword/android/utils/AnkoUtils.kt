@@ -16,17 +16,17 @@ import org.jetbrains.anko.custom.ankoView
 /**
  * Creates a [NavigationView] with no additional initialization.
  */
-public fun ViewManager.navigationView() = navigationView { }
+fun ViewManager.navigationView() = navigationView { }
 
 /**
  * DSL method to create a [NavigationView] and initialize it.
  */
-public inline fun ViewManager.navigationView(init: NavigationView.() -> Unit) = ankoView({ NavigationView(it) }, init)
+inline fun ViewManager.navigationView(init: NavigationView.() -> Unit) = ankoView({ NavigationView(it) }, init)
 
 /**
  * Creates a [CardView] with the default background color.
  */
-public  fun ViewManager.cardView(init: CardView.() -> Unit) {
+fun ViewManager.cardView(init: CardView.() -> Unit) {
     ankoView({ CardView(it) }) {
         setCardBackgroundColor(ContextCompat.getColor(context, R.color.card_background_color))
         init()

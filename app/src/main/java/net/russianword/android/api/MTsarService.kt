@@ -20,19 +20,19 @@ import java.util.*
 
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public data class Process(val id: String = "",
-                          val description: String = "")
+data class Process(val id: String = "",
+                   val description: String = "")
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public data class Worker(val id: String = "")
+data class Worker(val id: String = "")
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public data class TasksResponse(val tasks: List<Task> = listOf())
+data class TasksResponse(val tasks: List<Task> = listOf())
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public data class Task(val id: Int = 0,
-                       val description: String = "",
-                       val answers: List<String> = listOf()) : Serializable
+data class Task(val id: Int = 0,
+                val description: String = "",
+                val answers: List<String> = listOf()) : Serializable
 
 interface MTsarService {
     @GET("/processes")
@@ -57,9 +57,9 @@ interface MTsarService {
                    @FieldMap(encoded = false) fields: Map<String, String>): Observable<IntArray>
 
     companion object : AnkoLogger {
-        public const val DEFAULT_URL = "https://api.russianword.net/"
+        const val DEFAULT_URL = "https://api.russianword.net/"
 
-        public val DEFAULT_RETROFIT =
+        val DEFAULT_RETROFIT =
                 Retrofit.Builder()
                         .baseUrl(DEFAULT_URL)
                         .addConverterFactory(JacksonConverterFactory.create(jacksonObjectMapper()))
@@ -67,15 +67,15 @@ interface MTsarService {
 
                         .build()
 
-        public val service by lazy { DEFAULT_RETROFIT.create(MTsarService::class.java) }
+        val service by lazy { DEFAULT_RETROFIT.create(MTsarService::class.java) }
 
         private var processesCache: ArrayList<Process>? = null
-        public fun cachedListProcesses(): Observable<ArrayList<Process>> =
+        fun cachedListProcesses(): Observable<ArrayList<Process>> =
                 processesCache?.let { Observable.just(it) } ?:
                 MTsarService.service.listProcesses()
                         .doOnNext { processesCache = it }
 
-        public fun authenticateForProcess(process: Process, userTag: String): Observable<Worker> =
+        fun authenticateForProcess(process: Process, userTag: String): Observable<Worker> =
                 service.workerByTag(process.id, userTag)
                         .flatMap {
                             if (it != null)
@@ -84,14 +84,14 @@ interface MTsarService {
                                 service.addWorker(process.id, userTag)
                         }
 
-        public fun assignTask(processId: String, workerId: Int): Observable<Task> =
+        fun assignTask(processId: String, workerId: Int): Observable<Task> =
                 service.assignTask(processId, workerId)
                         .flatMap { Observable.from(it?.tasks ?: listOf()) }
                         .singleOrDefault(null)
 
-        public fun sendAnswer(processId:
-                              String, workerId: Int,
-                              taskId: Int, answers: List<String>): Observable<IntArray> {
+        fun sendAnswer(processId:
+                       String, workerId: Int,
+                       taskId: Int, answers: List<String>): Observable<IntArray> {
             return service.sendAnswer(processId,
                                       workerId,
                                       ListMultiMap(mapOf("answers[$taskId]" to answers)))

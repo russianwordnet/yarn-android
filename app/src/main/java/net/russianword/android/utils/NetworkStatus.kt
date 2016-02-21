@@ -8,7 +8,7 @@ import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import org.jetbrains.anko.connectivityManager
 
-public fun Context.onNetworkStateChange(handler: (NetworkInfo) -> Unit): BroadcastReceiver {
+fun Context.onNetworkStateChange(handler: (NetworkInfo) -> Unit): BroadcastReceiver {
     val receiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) =
                 connectivityManager.activeNetworkInfo?.let { handler(it) } ?: Unit

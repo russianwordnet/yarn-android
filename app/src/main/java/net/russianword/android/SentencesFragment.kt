@@ -46,7 +46,8 @@ class SentencesFragment : RxFragment(), AnkoLogger {
             State.SENDING_ANSWER -> State.ANSWER_READY
             else -> state
         }
-        userState.preparedAnswers = checkBoxes.filter { it.isChecked }.map { it.text.toString() }.toSet()
+        if (checkBoxes.isNotEmpty())
+            userState.preparedAnswers = checkBoxes.filter { it.isChecked }.map { it.text.toString() }.toSet()
         outState?.putSerializable(USER_STATE_BUNDLE_ID, userState)
     }
 
@@ -82,6 +83,7 @@ class SentencesFragment : RxFragment(), AnkoLogger {
             }
 
             State.NOT_LOADED -> {
+                checkBoxes.clear()
                 userState.currentState = State.LOADING
                 MTsarService.assignTask(processId, userState.userId!!.toInt())
                         .asAsync(this)
@@ -97,7 +99,8 @@ class SentencesFragment : RxFragment(), AnkoLogger {
 
             State.LOADED -> {
                 userState.currentState = State.DISPLAYED
-                showTask(userState.task)
+                if (checkBoxes.isEmpty())
+                    showTask(userState.task)
             }
 
             State.ANSWER_READY -> {

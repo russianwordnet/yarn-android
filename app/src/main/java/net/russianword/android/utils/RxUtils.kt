@@ -18,18 +18,18 @@ import rx.schedulers.Schedulers
  *
  * @return observable that works asynchronously
  */
-public fun <T> Observable<T>.asAsync(lifecycle: ActivityLifecycleProvider) =
+fun <T> Observable<T>.asAsync(lifecycle: ActivityLifecycleProvider) =
         subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread()).compose(lifecycle.bindToLifecycle<T>())
 
-public fun <T> Observable<T>.asAsync(lifecycle: FragmentLifecycleProvider) =
+fun <T> Observable<T>.asAsync(lifecycle: FragmentLifecycleProvider) =
         subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread()).compose(lifecycle.bindToLifecycle<T>())
 
 /**
  * @return [Observable] that will handle [Throwable] of [E] with passed [handler] and emit no items after.
  */
-public inline fun <reified E : Throwable, R> Observable<R>.handleError(crossinline handler: (E) -> Unit) =
+inline fun <reified E : Throwable, R> Observable<R>.handleError(crossinline handler: (E) -> Unit) =
         onErrorResumeNext f@{ e ->
             return@f when (e) {
                 is E -> { handler(e); Observable.empty() }
@@ -41,7 +41,7 @@ public inline fun <reified E : Throwable, R> Observable<R>.handleError(crossinli
  * @return [Observable] that will handle [Throwable] of [E] with passed [handler] and resume with another [Observable]
  *         returned by it.
  */
-public inline fun <reified E : Throwable, R> Observable<R>.handleErrorThen(crossinline handler: (E) -> Observable<R>) =
+inline fun <reified E : Throwable, R> Observable<R>.handleErrorThen(crossinline handler: (E) -> Observable<R>) =
         onErrorResumeNext f@{ e ->
             return@f when (e) {
                 is E -> handler(e)

@@ -6,6 +6,7 @@ import android.support.v4.content.ContextCompat
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
+import android.util.Pair
 import android.util.TypedValue
 import android.view.TouchDelegate
 import android.view.View
@@ -18,13 +19,13 @@ import net.russianword.android.R
  * Created by igushs on 12/5/15.
  */
 
-public fun Button.makeBorderless() {
+fun Button.makeBorderless() {
     val value = TypedValue()
-    context.getTheme().resolveAttribute(android.R.attr.selectableItemBackground, value, true)
+    context.theme.resolveAttribute(android.R.attr.selectableItemBackground, value, true)
     setBackgroundResource(value.resourceId)
 }
 
-public fun View.expandTouchAreaToParent() {
+fun View.expandTouchAreaToParent() {
     post {
         val parent = parent
         if (parent !is View) return@post
@@ -38,7 +39,7 @@ public fun View.expandTouchAreaToParent() {
     }
 }
 
-public tailrec fun disableClip(v: ViewParent) {
+tailrec fun disableClip(v: ViewParent) {
     val parent = v.parent
     if (parent is ViewGroup) {
         parent.clipChildren = false
@@ -48,7 +49,7 @@ public tailrec fun disableClip(v: ViewParent) {
         disableClip(parent)
 }
 
-public fun Context.spanAsterisksWithAccentColor(s: CharSequence): CharSequence {
+fun Context.spanAsterisksWithAccentColor(s: CharSequence): CharSequence {
     val color = ContextCompat.getColor(this, R.color.accent)
     val asterisks = s.mapIndexed { i, c -> Pair(i, c) }.filter { it.second == '*' }.map { it.first }
     if (asterisks.size == 2) {
