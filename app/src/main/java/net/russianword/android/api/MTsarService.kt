@@ -1,6 +1,6 @@
 package net.russianword.android.api
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import net.russianword.android.utils.ListMultiMap
 import org.jetbrains.anko.AnkoLogger
@@ -18,21 +18,20 @@ import java.util.*
  * Created by igushs on 12/4/15.
  */
 
-
-@JsonIgnoreProperties(ignoreUnknown = true)
-data class Process(val id: String = "",
+data class Process(val id: String,
                    val description: String = "")
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-data class Worker(val id: String = "")
+data class Worker(val id: String)
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-data class TasksResponse(val tasks: List<Task> = listOf())
+data class TasksResponse(val tasks: List<Task>)
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-data class Task(val id: Int = 0,
-                val description: String = "",
-                val answers: List<String> = listOf()) : Serializable
+data class Task(val id: Int,
+                val description: String,
+                val answers: List<String>) : Serializable
+
+data class AnswerReport(val id: Int,
+                        val stage: String,
+                        val answers: List<String>)
 
 interface MTsarService {
     @GET("/processes")
@@ -54,7 +53,7 @@ interface MTsarService {
     @FormUrlEncoded
     @PATCH("/processes/{process}/workers/{worker}/answers")
     fun sendAnswer(@Path("process") processId: String, @Path("worker") workerId: Int,
-                   @FieldMap(encoded = false) fields: Map<String, String>): Observable<IntArray>
+                   @FieldMap(encoded = false) fields: Map<String, String>): Observable<List<AnswerReport>>
 
     companion object : AnkoLogger {
         const val DEFAULT_URL = "https://api.russianword.net/"
@@ -62,9 +61,9 @@ interface MTsarService {
         val DEFAULT_RETROFIT =
                 Retrofit.Builder()
                         .baseUrl(DEFAULT_URL)
-                        .addConverterFactory(JacksonConverterFactory.create(jacksonObjectMapper()))
+                        .addConverterFactory(JacksonConverterFactory.create(
+                                jacksonObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)))
                         .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
-
                         .build()
 
         val service by lazy { DEFAULT_RETROFIT.create(MTsarService::class.java) }
@@ -72,8 +71,7 @@ interface MTsarService {
         private var processesCache: ArrayList<Process>? = null
         fun cachedListProcesses(): Observable<ArrayList<Process>> =
                 processesCache?.let { Observable.just(it) } ?:
-                MTsarService.service.listProcesses()
-                        .doOnNext { processesCache = it }
+                service.listProcesses().doOnNext { processesCache = it }
 
         fun authenticateForProcess(process: Process, userTag: String): Observable<Worker> =
                 service.workerByTag(process.id, userTag)
@@ -91,10 +89,11 @@ interface MTsarService {
 
         fun sendAnswer(processId:
                        String, workerId: Int,
-                       taskId: Int, answers: List<String>): Observable<IntArray> {
-            return service.sendAnswer(processId,
-                                      workerId,
-                                      ListMultiMap(mapOf("answers[$taskId]" to answers)))
+                       taskId: Int, answers: List<String>): Observable<List<AnswerReport>> {
+            return service.sendAnswer(
+                    processId, workerId,
+                    ListMultiMap(mapOf("answers[$taskId]" to answers.let { if (it.isEmpty()) listOf("") else it }))
+            )
         }
     }
 }

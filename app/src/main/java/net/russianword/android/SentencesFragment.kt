@@ -110,7 +110,7 @@ class SentencesFragment : RxFragment(), AnkoLogger {
                         .asAsync(this)
                         .handleErrorThen { e: HttpException ->
                             if (e.response().errorBody().string().contains("#answer-duplicate"))
-                                Observable.just(intArrayOf())
+                                Observable.just(emptyList())
                             else
                                 Observable.error(e)
                         }
