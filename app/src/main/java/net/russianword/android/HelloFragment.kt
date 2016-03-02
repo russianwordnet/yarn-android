@@ -15,7 +15,6 @@ class HelloFragment : RxFragment() {
 
     fun TextView.centered() = apply {
         gravity = Gravity.CENTER
-        textAlignment = View.TEXT_ALIGNMENT_CENTER
     }
 
     override fun onCreateView(inflater: LayoutInflater,
