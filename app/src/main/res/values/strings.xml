@@ -21,7 +21,8 @@
     <string name="acs_drawer_open">Open menu</string>
     <string name="acs_drawer_close">Close menu</string>
 
-    <string name="btn_done">Done</string>
+    <string name="btn_done">Send</string>
+    <string name="btn_skip">Skip</string>
     <string name="btn_retry">Retry</string>
 
     <string name="hint_sentences">Choose all the words which fit the meaning of the sentence</string>

@@ -16,4 +16,4 @@ enum class State {
 data class ProcessState(@Volatile var currentState: State = State.NOT_AUTHENTICATED,
                         @Volatile var userId: String? = null,
                         @Volatile var task: Task? = null,
-                        @Volatile var preparedAnswers: Set<String> = HashSet()) : Serializable
+                        @Volatile var preparedAnswers: Set<String>? = HashSet()) : Serializable

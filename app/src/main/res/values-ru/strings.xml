@@ -18,7 +18,8 @@
     <string name="acs_drawer_open">Открыть меню</string>
     <string name="acs_drawer_close">Закрыть меню</string>
 
-    <string name="btn_done">Готово</string>
+    <string name="btn_done">Отправить</string>
+    <string name="btn_skip">Пропустить</string>
     <string name="btn_retry">Повторить</string>
 
     <string name="hint_sentences">Выберите все слова, подходящие по смыслу к предложению</string>

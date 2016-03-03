@@ -55,6 +55,11 @@ interface MTsarService {
     fun sendAnswer(@Path("process") processId: String, @Path("worker") workerId: Int,
                    @FieldMap(encoded = false) fields: Map<String, String>): Observable<List<AnswerReport>>
 
+    @FormUrlEncoded
+    @PATCH("/processes/{process}/workers/{worker}/answers/skip")
+    fun skipAnswer(@Path("process") processId: String, @Path("worker") workerId: Int,
+                   @Field("tasks") taskId: Int): Observable<List<AnswerReport>>
+
     companion object : AnkoLogger {
         const val DEFAULT_URL = "https://api.russianword.net/"
 
@@ -89,11 +94,15 @@ interface MTsarService {
 
         fun sendAnswer(processId:
                        String, workerId: Int,
-                       taskId: Int, answers: List<String>): Observable<List<AnswerReport>> {
-            return service.sendAnswer(
-                    processId, workerId,
-                    ListMultiMap(mapOf("answers[$taskId]" to answers.let { if (it.isEmpty()) listOf("") else it }))
-            )
-        }
+                       taskId: Int, answers: List<String>): Observable<List<AnswerReport>> =
+                service.sendAnswer(
+                        processId, workerId,
+                        ListMultiMap(mapOf("answers[$taskId]" to answers.let { if (it.isEmpty()) listOf("") else it }))
+                )
+
+        fun skipAnswer(processId:
+                       String, workerId: Int,
+                       taskId: Int) =
+                service.skipAnswer(processId, workerId, taskId)
     }
 }

@@ -15,8 +15,11 @@ const val APPEAR_DURATION = 300L
 const val DISAPPEAR_DURATION = 200L
 const val APPEAR_DELTA_Y = 600
 const val DISAPPEAR_DELTA_Y = 200
+const val DISAPPEAR_DELTA_X = 200
 
 fun View.disappearToTop() = animateDisappear(0, -DISAPPEAR_DELTA_Y)
+
+fun View.disappearToLeft() = animateDisappear(-DISAPPEAR_DELTA_X, 0)
 
 fun View.animateDisappear(toX: Int, toY: Int) {
     val translate = TranslateAnimation(0f, toX.toFloat(), 0f, toY.toFloat())

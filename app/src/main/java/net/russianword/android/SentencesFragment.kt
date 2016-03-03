@@ -46,7 +46,7 @@ class SentencesFragment : RxFragment(), AnkoLogger {
             State.SENDING_ANSWER -> State.ANSWER_READY
             else -> state
         }
-        if (checkBoxes.isNotEmpty())
+        if (userState.currentState != State.ANSWER_READY && checkBoxes.isNotEmpty())
             userState.preparedAnswers = checkBoxes.filter { it.isChecked }.map { it.text.toString() }.toSet()
         outState?.putSerializable(USER_STATE_BUNDLE_ID, userState)
     }
@@ -105,9 +105,10 @@ class SentencesFragment : RxFragment(), AnkoLogger {
 
             State.ANSWER_READY -> {
                 userState.currentState = State.SENDING_ANSWER
-                MTsarService.sendAnswer(processId, userState.userId!!.toInt(),
-                                        userState.task!!.id, userState.preparedAnswers.toList())
-                        .asAsync(this)
+                val sendingObservable = userState.preparedAnswers?.let {
+                    MTsarService.sendAnswer(processId, userState.userId!!.toInt(), userState.task!!.id, it.toList())
+                } ?: MTsarService.skipAnswer(processId, userState.userId!!.toInt(), userState.task!!.id)
+                sendingObservable.asAsync(this)
                         .handleErrorThen { e: HttpException ->
                             if (e.response().errorBody().string().contains("#answer-duplicate"))
                                 Observable.just(emptyList())
@@ -123,7 +124,6 @@ class SentencesFragment : RxFragment(), AnkoLogger {
                             userState.preparedAnswers = emptySet()
                             proceed()
                         }
-
             }
         }
 
@@ -162,7 +162,7 @@ class SentencesFragment : RxFragment(), AnkoLogger {
                 appearFromBottom()
             }
         }
-        for (ans in userState.preparedAnswers) {
+        for (ans in userState.preparedAnswers.orEmpty()) {
             checkBoxes.firstOrNull() { it.text == ans }?.let { it.isChecked = true }
         }
     }
@@ -234,15 +234,32 @@ class SentencesFragment : RxFragment(), AnkoLogger {
                             verticalMargin = dip(4)
                         })
                 }
+                linearLayout {
+                    button(R.string.btn_skip) {
+                        lparams(weight = 0.5f)
+                        makeBorderless()
+                        onClick {
+                            userState.preparedAnswers = null
+                            userState.currentState = State.ANSWER_READY
+                            proceed()
+                            this@cardView.disappearToLeft()
+                            onClick { }
+                        }
+                    }
 
-                button(R.string.btn_done) {
-                    makeBorderless()
-                    onClick {
-                        userState.preparedAnswers = checkBoxes.filter { it.isChecked }.map { it.text.toString() }.toMutableSet()
-                        userState.currentState = State.ANSWER_READY
-                        proceed()
-                        this@cardView.disappearToTop()
-                        onClick { }
+                    button(R.string.btn_done) {
+                        lparams(weight = 0.5f)
+                        makeBorderless()
+                        onClick {
+                            userState.preparedAnswers = checkBoxes
+                                    .filter { it.isChecked }
+                                    .map { it.text.toString() }
+                                    .toMutableSet()
+                            userState.currentState = State.ANSWER_READY
+                            proceed()
+                            this@cardView.disappearToTop()
+                            onClick { }
+                        }
                     }
                 }.lparams {
                     width = matchParent
