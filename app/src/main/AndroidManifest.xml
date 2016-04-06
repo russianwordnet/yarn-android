@@ -9,6 +9,7 @@
     <application
         tools:ignore="UnusedAttribute,MissingTranslation,UnusedResources"
 
+        android:name=".MainApplication"
         android:theme="@style/AppTheme"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"

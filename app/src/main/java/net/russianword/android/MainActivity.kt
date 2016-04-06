@@ -9,7 +9,6 @@ import android.support.v4.content.ContextCompat
 import android.support.v7.app.ActionBarDrawerToggle
 import android.view.Gravity
 import android.view.MenuItem
-import com.joshdholtz.sentry.Sentry
 import com.trello.rxlifecycle.components.support.RxAppCompatActivity
 import net.russianword.android.api.MTsarService
 import net.russianword.android.api.Process
@@ -82,13 +81,9 @@ class MainActivity : RxAppCompatActivity(), AnkoLogger {
                          } ?: HelloFragment())
                 .commit()
 
-        Sentry.init(this.applicationContext,
-                    "http://sentry.eveel.ru",
-                    "http://5363021a613a44c9a3a8107af0a5cf07:c252bb3313334773be197aff6b1a7bd7@sentry.eveel.ru/7");
-
         supportFragmentManager.addOnBackStackChangedListener {
             val fragment = supportFragmentManager.findFragmentById(FRAGMENT_HOLDER_ID)
-            var menuItem = processToMenuItem(fragmentToProcessId(fragment))
+            val menuItem = processToMenuItem(fragmentToProcessId(fragment))
             nvNavigation.setCheckedItem(menuItem?.itemId ?: MENU_ABOUT_ID)
         }
     }
