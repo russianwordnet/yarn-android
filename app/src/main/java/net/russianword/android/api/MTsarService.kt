@@ -4,10 +4,10 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import net.russianword.android.utils.ListMultiMap
 import org.jetbrains.anko.AnkoLogger
-import retrofit.JacksonConverterFactory
-import retrofit.Retrofit
-import retrofit.RxJavaCallAdapterFactory
-import retrofit.http.*
+import retrofit2.Retrofit
+import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory
+import retrofit2.converter.jackson.JacksonConverterFactory
+import retrofit2.http.*
 import rx.Observable
 import java.io.Serializable
 import java.util.*

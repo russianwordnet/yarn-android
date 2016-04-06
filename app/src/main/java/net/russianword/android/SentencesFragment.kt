@@ -17,7 +17,7 @@ import org.jetbrains.anko.*
 import org.jetbrains.anko.support.v4.UI
 import org.jetbrains.anko.support.v4.ctx
 import org.jetbrains.anko.support.v4.toast
-import retrofit.HttpException
+import retrofit2.adapter.rxjava.HttpException
 import rx.Observable
 import java.io.IOException
 import java.util.*
