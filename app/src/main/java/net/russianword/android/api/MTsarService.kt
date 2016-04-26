@@ -34,29 +34,29 @@ data class AnswerReport(val id: Int,
                         val answers: List<String>)
 
 interface MTsarService {
-    @GET("/processes")
+    @GET("/stages")
     @Headers("Accept: application/json")
     fun listProcesses(): Observable<ArrayList<Process>>
 
-    @GET("/processes/{process}/workers/tagged/{tag}")
+    @GET("/stages/{process}/workers/tagged/{tag}")
     @Headers("Accept: application/json")
     fun workerByTag(@Path("process") processId: String, @Path("tag") tag: String): Observable<Worker>
 
     @FormUrlEncoded
-    @POST("/processes/{process}/workers")
+    @POST("/stages/{process}/workers")
     @Headers("Accept: application/json")
     fun addWorker(@Path("process") processId: String, @Field("tags") tags: String): Observable<Worker>
 
-    @GET("/processes/{process}/workers/{worker}/task")
+    @GET("/stages/{process}/workers/{worker}/task")
     fun assignTask(@Path("process") processId: String, @Path("worker") workerId: Int): Observable<TasksResponse>
 
     @FormUrlEncoded
-    @PATCH("/processes/{process}/workers/{worker}/answers")
+    @PATCH("/stages/{process}/workers/{worker}/answers")
     fun sendAnswer(@Path("process") processId: String, @Path("worker") workerId: Int,
                    @FieldMap(encoded = false) fields: Map<String, String>): Observable<List<AnswerReport>>
 
     @FormUrlEncoded
-    @PATCH("/processes/{process}/workers/{worker}/answers/skip")
+    @PATCH("/stages/{process}/workers/{worker}/answers/skip")
     fun skipAnswer(@Path("process") processId: String, @Path("worker") workerId: Int,
                    @Field("tasks") taskId: Int): Observable<List<AnswerReport>>
 
@@ -92,17 +92,14 @@ interface MTsarService {
                         .flatMap { Observable.from(it?.tasks ?: listOf()) }
                         .singleOrDefault(null)
 
-        fun sendAnswer(processId:
-                       String, workerId: Int,
+        fun sendAnswer(processId: String, workerId: Int,
                        taskId: Int, answers: List<String>): Observable<List<AnswerReport>> =
                 service.sendAnswer(
                         processId, workerId,
                         ListMultiMap(mapOf("answers[$taskId]" to answers.let { if (it.isEmpty()) listOf("") else it }))
                 )
 
-        fun skipAnswer(processId:
-                       String, workerId: Int,
-                       taskId: Int) =
+        fun skipAnswer(processId: String, workerId: Int, taskId: Int) =
                 service.skipAnswer(processId, workerId, taskId)
     }
 }

@@ -5,6 +5,7 @@ import android.graphics.Rect
 import android.support.v4.content.ContextCompat
 import android.text.Spannable
 import android.text.SpannableString
+import android.text.SpannableStringBuilder
 import android.text.style.ForegroundColorSpan
 import android.util.Pair
 import android.util.TypedValue
@@ -52,11 +53,16 @@ tailrec fun disableClip(v: ViewParent) {
 fun Context.spanAsterisksWithAccentColor(s: CharSequence): CharSequence {
     val color = ContextCompat.getColor(this, R.color.accent)
     val asterisks = s.mapIndexed { i, c -> Pair(i, c) }.filter { it.second == '*' }.map { it.first }
-    if (asterisks.size == 2) {
-        val removedAsterisks = SpannableString(s.filter { it != '*' })
-        removedAsterisks.setSpan(ForegroundColorSpan(color), asterisks[0], asterisks[1] - 1,
-                                 Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
-        return removedAsterisks
+    val result = SpannableStringBuilder()
+    var currentIndex = 0
+    asterisks.batch(2).map { it.toList() }.forEach { b ->
+        if (b.size != 2) return@forEach
+        val part = SpannableString(s.subSequence(currentIndex, b[1]).filter { it != '*' })
+        part.setSpan(ForegroundColorSpan(color), b[0] - currentIndex, b[1] - 1 - currentIndex,
+                     Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+        result.append(part)
+        currentIndex = b[1] + 1
     }
-    return s
+    result.append(s.substring(currentIndex))
+    return result
 }

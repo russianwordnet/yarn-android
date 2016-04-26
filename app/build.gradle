@@ -59,8 +59,8 @@ android {
     }
 
     packagingOptions {
-        merge 'META-INF/LICENSE'
-        merge 'META-INF/NOTICE'
+        pickFirst 'META-INF/LICENSE'
+        pickFirst 'META-INF/NOTICE'
     }
 }
 

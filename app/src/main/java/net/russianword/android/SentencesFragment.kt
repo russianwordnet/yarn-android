@@ -25,7 +25,7 @@ import kotlin.properties.Delegates
 
 class SentencesFragment : RxFragment(), AnkoLogger {
 
-    val processId = fragmentToProcessId(this)!!
+    val processId: String by lazy { fragmentToProcessId(this)!! }
 
     private var userState = ProcessState()
 
@@ -208,22 +208,32 @@ class SentencesFragment : RxFragment(), AnkoLogger {
 
                 configuration(orientation = Orientation.LANDSCAPE) {
                     desc.gravity = Gravity.CENTER
-                    linearLayout {
-                        for (ans in task.answers) {
-                            frameLayout {
-                                checkBox(ans) {
-                                    gravity = Gravity.CENTER
-                                    expandTouchAreaToParent()
-                                    checkBoxes.add(this)
+
+                    val BATCH_SIZE = 4
+
+                    task.answers.let { if (it.size <= 4) listOf(it) else it.batch(BATCH_SIZE) }.forEach { b ->
+                        linearLayout {
+                            for (ans in b) {
+                                frameLayout {
+                                    checkBox(ans) {
+                                        gravity = Gravity.CENTER
+                                        expandTouchAreaToParent()
+                                        checkBoxes.add(this)
+                                    }.lparams {
+                                        gravity = Gravity.START
+                                        width = wrapContent
+                                        height = matchParent
+                                    }
                                 }.lparams {
-                                    gravity = Gravity.CENTER
-                                    width = wrapContent
-                                    height = matchParent
+                                    width = dip(0)
+                                    weight = 1.0f
                                 }
-                            }.lparams {
-                                width = dip(0)
-                                weight = 1.0f
                             }
+                            if (b.count() < BATCH_SIZE)
+                                frameLayout { view() }.lparams {
+                                    width = dip(0)
+                                    weight = (BATCH_SIZE - b.count()).toFloat()
+                                }
                         }
                     }
                 }
