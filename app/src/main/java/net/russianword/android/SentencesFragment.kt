@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver
 import android.os.Bundle
 import android.support.v7.widget.CardView
 import android.view.*
+import android.widget.Button
 import android.widget.CheckBox
 import android.widget.FrameLayout
 import android.widget.ProgressBar
@@ -162,6 +163,7 @@ class SentencesFragment : RxFragment(), AnkoLogger {
                 appearFromBottom()
             }
         }
+        updateButtonText()
         for (ans in userState.preparedAnswers.orEmpty()) {
             checkBoxes.firstOrNull() { it.text == ans }?.let { it.isChecked = true }
         }
@@ -187,6 +189,12 @@ class SentencesFragment : RxFragment(), AnkoLogger {
 
     private val checkBoxes = ArrayList<CheckBox>()
 
+    fun updateButtonText() {
+        btnDone?.text = getString(if (checkBoxes.any { it.isChecked }) R.string.btn_done else R.string.btn_done_none)
+    }
+
+    var btnDone: Button? = null
+
     private fun ViewManager.taskView(task: Task?, init: CardView.() -> Unit) = UI {
         if (task == null) {
             this@taskView.textView(R.string.no_more_tasks) {
@@ -206,6 +214,7 @@ class SentencesFragment : RxFragment(), AnkoLogger {
                     verticalMargin = dip(8)
                 }
 
+
                 configuration(orientation = Orientation.LANDSCAPE) {
                     desc.gravity = Gravity.CENTER
 
@@ -219,6 +228,7 @@ class SentencesFragment : RxFragment(), AnkoLogger {
                                         gravity = Gravity.CENTER
                                         expandTouchAreaToParent()
                                         checkBoxes.add(this)
+                                        onCheckedChange { compoundButton, b -> updateButtonText() }
                                     }.lparams {
                                         gravity = Gravity.START
                                         width = wrapContent
@@ -239,15 +249,16 @@ class SentencesFragment : RxFragment(), AnkoLogger {
                 }
                 configuration(orientation = Orientation.PORTRAIT) {
                     for (ans in task.answers)
-                        checkBoxes.add(checkBox(ans).lparams {
+                        checkBoxes.add(checkBox(ans) {
+                            onCheckedChange { compoundButton, b -> updateButtonText() }
+                        }.lparams {
                             width = matchParent
                             verticalMargin = dip(4)
                         })
                 }
                 linearLayout {
                     button(R.string.btn_skip) {
-                        lparams(weight = 0.5f)
-                        makeBorderless()
+                        gravity = Gravity.CENTER
                         onClick {
                             userState.preparedAnswers = null
                             userState.currentState = State.ANSWER_READY
@@ -255,11 +266,11 @@ class SentencesFragment : RxFragment(), AnkoLogger {
                             this@cardView.disappearToLeft()
                             onClick { }
                         }
-                    }
+                    }.lparams { width = wrapContent }
 
                     button(R.string.btn_done) {
-                        lparams(weight = 0.5f)
-                        makeBorderless()
+                        btnDone = this
+                        gravity = Gravity.CENTER
                         onClick {
                             userState.preparedAnswers = checkBoxes
                                     .filter { it.isChecked }
@@ -270,10 +281,10 @@ class SentencesFragment : RxFragment(), AnkoLogger {
                             this@cardView.disappearToTop()
                             onClick { }
                         }
-                    }
+                    }.lparams { weight = 1f; width = dip(0) }
                 }.lparams {
                     width = matchParent
-                    topMargin = dip(8)
+                    topMargin = dip(16)
                 }
             }.apply {
                 padding = dip(16)

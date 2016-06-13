@@ -18,7 +18,7 @@
     <string name="acs_drawer_open">Открыть меню</string>
     <string name="acs_drawer_close">Закрыть меню</string>
 
-    <string name="btn_done">Отправить</string>
+    <string name="btn_done">Отправить ответ</string>
     <string name="btn_skip">Пропустить</string>
     <string name="btn_retry">Повторить</string>
 
@@ -27,4 +27,5 @@
     <string name="mnu_about">О проекте</string>
     <string name="txt_about">Сергей Игушкин, YARN</string>
     <string name="txt_help">Выберите этап из списка в меню</string>
+    <string name="btn_done_none">Ничего не подходит</string>
 </resources>
